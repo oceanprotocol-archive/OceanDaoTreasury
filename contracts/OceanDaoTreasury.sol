@@ -22,10 +22,12 @@ contract OceanDaoTreasury is Ownable {
         address token
     );
     event GrantClaimed(
-        address indexed claimer,
+        address indexed recipient,
         uint256 amount,
         string projectName,
-        address caller
+        uint256 roundNumber,
+        address caller,
+        uint256 timestamp
     );
 
     constructor(address _verifierWallet) {
@@ -75,7 +77,14 @@ contract OceanDaoTreasury is Ownable {
         require(signer == verifierWallet, "Not authorized");
 
         isGrantClaimed[message] = true;
-        emit GrantClaimed(recipient, amount, projectName, msg.sender);
+        emit GrantClaimed(
+            recipient,
+            amount,
+            projectName,
+            roundNumber,
+            msg.sender,
+            block.timestamp
+        );
         // transfer funds
         IERC20(tokenAddress).safeTransfer(recipient, amount);
     }
