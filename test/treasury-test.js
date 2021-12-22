@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
-const { ecsign, toRpcSig } = require("ethereumjs-util");
+const { ecsign } = require("ethereumjs-util");
 
 let mockErc20, treasury;
 let owner, alice, bob, badguy;
@@ -19,14 +19,14 @@ function signMessage(message, privateKey) {
 }
 
 describe("Treasury Test", () => {
-  it("Set variables", async () => {
+  before("Set variables", async () => {
     [owner, alice, bob, badguy] = await ethers.getSigners();
 
     // Deploy the contract
     treasury = await ethers.getContractFactory("OceanDaoTreasury");
     treasury = await treasury.deploy(verifierAddress);
     mockErc20 = await ethers.getContractFactory("MockERC20");
-    mockErc20 = await mockErc20.deploy("MOCK", "MOCK");
+    mockErc20 = await mockErc20.deploy("MOCK", "MOCK", owner.address);
     await mockErc20.approve(treasury.address, ethers.constants.MaxUint256);
     await treasury.fundTreasury(
       mockErc20.address,
@@ -205,13 +205,13 @@ describe("Treasury Test", () => {
   });
 
   it("Owner is able to change the verifier wallet", async () => {
-    await treasury.changeVerifierWallet(alice.address);
+    await treasury.setVerifierWallet(alice.address);
     expect(await treasury.verifierWallet()).to.equal(alice.address);
   });
 
   it("Alice is NOT able to change the verifier wallet", async () => {
     await expect(
-      treasury.connect(alice).changeVerifierWallet(alice.address)
+      treasury.connect(alice).setVerifierWallet(alice.address)
     ).to.be.revertedWith("Ownable: caller is not the owner");
   });
 });
