@@ -8,8 +8,9 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 contract OceanDaoTreasury is Ownable {
     using SafeERC20 for IERC20;
     address public verifierWallet;
-    uint256 grantDeadline = 2 weeks;
-    mapping(bytes32 => bool) public isGrantClaimed;
+    uint256 public grantDeadline = 2 weeks;
+    mapping(bytes32 => bool) public isGrantClaimedHash;
+    mapping(string => bool) public isGrantClaimedId;
 
     event VerifierWalletSet(address oldVerifierWallet);
     event TreasuryDeposit(
@@ -143,12 +144,15 @@ contract OceanDaoTreasury is Ownable {
             )
         );
 
-        require(isGrantClaimed[message] == false, "Grant already claimed"); // Check if grant has already been claimed
+        require(isGrantClaimedHash[message] == false, "Grant already claimed"); // Check if grant has already been claimed
+        require(isGrantClaimedId[proposalId] == false, "Grant already claimed"); // Check if grant has already been claimed
 
         address signer = tryRecover(message, v, r, s);
         require(signer == verifierWallet, "Not authorized"); // Check if the verifier wallet is the signer
 
-        isGrantClaimed[message] = true; // Mark grant as claimed
+        isGrantClaimedHash[message] = true; // Mark grant as claimed
+        isGrantClaimedId[proposalId] = true; // Mark grant as claimed
+
         emit GrantClaimed( // Emit event
             recipient,
             amount,
