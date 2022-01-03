@@ -36,7 +36,7 @@ describe("Treasury Test", () => {
       {
         amount: ethers.utils.parseEther("100"),
         recipient: alice.address,
-        projectName: "Project 1",
+        projectName: "4234253",
         timeStamp: parseInt(Date.now() / 1000),
         tokenAddress: mockErc20.address,
         roundNumber: 12,
@@ -44,7 +44,7 @@ describe("Treasury Test", () => {
       {
         amount: ethers.utils.parseEther("100"),
         recipient: alice.address,
-        projectName: "Project 1",
+        projectName: "76573456",
         timeStamp: parseInt(Date.now() / 1000),
         tokenAddress: mockErc20.address,
         roundNumber: 13,
@@ -52,10 +52,18 @@ describe("Treasury Test", () => {
       {
         amount: ethers.utils.parseEther("200"),
         recipient: bob.address,
-        projectName: "Project 2",
+        projectName: "345363454",
         timeStamp: parseInt(Date.now() / 1000),
         tokenAddress: mockErc20.address,
         roundNumber: 13,
+      },
+      {
+        amount: ethers.utils.parseEther("100"), // accidentally created identical grant
+        recipient: alice.address,
+        projectName: "4234253",
+        timeStamp: parseInt(Date.now() / 1000),
+        tokenAddress: mockErc20.address,
+        roundNumber: 12,
       },
     ];
   });
@@ -103,6 +111,24 @@ describe("Treasury Test", () => {
   });
   it("Alice tries to claim again must revert", async () => {
     const grant = grants[0];
+    await expect(
+      treasury
+        .connect(alice)
+        .claimGrant(
+          grant.roundNumber,
+          grant.recipient,
+          grant.projectName,
+          grant.timeStamp,
+          grant.amount,
+          grant.tokenAddress,
+          grant.signedMessage.v,
+          grant.signedMessage.r,
+          grant.signedMessage.s
+        )
+    ).to.be.revertedWith("Grant already claimed");
+  });
+  it("Alice tries to claim a grant with same proposal id, must revert", async () => {
+    const grant = grants[3];
     await expect(
       treasury
         .connect(alice)
@@ -182,6 +208,30 @@ describe("Treasury Test", () => {
           grant.signedMessage.s
         )
     ).to.be.revertedWith("Timed out");
+  });
+  it("Owner extends grant deadline", async () => {
+    await treasury.setGrantDeadline(60 * 60 * 24 * 24);
+  });
+  it("Alice tries to claim grant after two weeks", async () => {
+    const aliceBalanceBefore = await mockErc20.balanceOf(alice.address);
+    const grant = grants[1];
+    await treasury
+      .connect(alice)
+      .claimGrant(
+        grant.roundNumber,
+        grant.recipient,
+        grant.projectName,
+        grant.timeStamp,
+        grant.amount,
+        grant.tokenAddress,
+        grant.signedMessage.v,
+        grant.signedMessage.r,
+        grant.signedMessage.s
+      );
+    const aliceBalanceAfter = await mockErc20.balanceOf(alice.address);
+    expect(aliceBalanceAfter.sub(aliceBalanceBefore).toString()).to.equal(
+      ethers.utils.parseEther("100")
+    );
   });
 
   it("Owner is able to withdraw funds from the contract", async () => {
