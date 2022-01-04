@@ -140,7 +140,8 @@ contract OceanDaoTreasury is Ownable {
                 recipient,
                 proposalId,
                 timestamp,
-                amount
+                amount,
+                tokenAddress
             )
         );
 
