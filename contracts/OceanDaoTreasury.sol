@@ -90,12 +90,12 @@ contract OceanDaoTreasury is Ownable {
      * @param _amount The amount of tokens to deposit.
      * @param _token The token to deposit.
      */
-    function withdrawFunds(uint256 amount, address token) public onlyOwner {
+    function withdrawFunds(uint256 amount, address token) external onlyOwner {
         IERC20(token).transfer(msg.sender, amount);
         emit TreasuryWithdraw(msg.sender, amount, token);
     }
 
-    function setGrantDeadline(uint256 _grantDeadline) public onlyOwner {
+    function setGrantDeadline(uint256 _grantDeadline) external onlyOwner {
         grantDeadline = _grantDeadline;
     }
 
