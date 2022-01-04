@@ -74,13 +74,14 @@ describe("Treasury Test", () => {
   it("Add a signature to each grant object", async function () {
     for (const grant of grants) {
       const message = ethers.utils.solidityKeccak256(
-        ["uint256", "address", "string", "uint256", "uint256"],
+        ["uint256", "address", "string", "uint256", "uint256", "address"],
         [
           grant.roundNumber,
           grant.recipient,
           grant.projectName,
           grant.timeStamp,
           grant.amount,
+          grant.tokenAddress,
         ]
       );
       const signedMessage = signMessage(message, verifierPK);
